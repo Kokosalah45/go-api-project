@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	_ "github.com/joho/godotenv/autoload"
-
 	"go-api-project/internal/database"
+	mongodb "go-api-project/internal/database/mongodb"
+
+	"github.com/gin-contrib/cors"
 )
 
 type App struct {
@@ -27,7 +27,7 @@ func NewApp() *App {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	newApp := &App{
 		port: port,
-		db:   database.New(),
+		db:   mongodb.New(),
 		corsConfig: cors.Config{
 			AllowOrigins:     []string{"http://localhost:5173"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
@@ -72,9 +72,9 @@ func (a *App) Start() error {
 }
 
 func (a *App) Shutdown(ctx context.Context) error {
-    fmt.Println("Shutting down server...")
-    if err := a.db.Close(); err != nil {
-        log.Printf("Error closing DB: %v", err)
-    }
-    return a.server.Shutdown(ctx)
+	fmt.Println("Shutting down server...")
+	if err := a.db.Close(); err != nil {
+		log.Printf("Error closing DB: %v", err)
+	}
+	return a.server.Shutdown(ctx)
 }

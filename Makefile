@@ -1,3 +1,12 @@
+# Environment variables — no .env file needed
+export PORT       := 8080
+export APP_ENV    := local
+export DB_HOST    := localhost
+export DB_PORT    := 27017
+export DB_USERNAME := appuser
+export DB_PASSWORD := apppassword
+export DB_NAME    := mydb
+
 # Build the application
 all: build test
 
@@ -8,6 +17,15 @@ build:
 # Run the application
 run:
 	@go run cmd/api/main.go
+
+# Run migrations
+migrate-up:
+	@echo "Running migrations..."
+	@go run cmd/migrate/main.go up
+
+migrate-down:
+	@echo "Rolling back migrations..."
+	@go run cmd/migrate/main.go down
 
 # Create DB container
 docker-run:
@@ -63,4 +81,4 @@ format:
 	@echo "Formatting code..."
 	@go fmt ./...
 
-.PHONY: all build run test clean watch docker-run docker-down itest
+.PHONY: all build run test clean watch docker-run docker-down itest migrate-up migrate-down
