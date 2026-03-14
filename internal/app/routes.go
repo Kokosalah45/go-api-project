@@ -1,9 +1,9 @@
 package app
 
 import (
-	"go-api-project/internal/features/users/adapters"
-	httpport "go-api-project/internal/features/users/ports/http-port"
-	userService "go-api-project/internal/features/users/service"
+	"go-api-project/internal/features/users/adapters/incoming/rest"
+	"go-api-project/internal/features/users/adapters/outgoing/repository"
+	"go-api-project/internal/features/users/service"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -17,8 +17,8 @@ func (a *App) registerRoutes() http.Handler {
 	r.Use(cors.New(a.corsConfig))
 	r.Use(gin.Recovery())
 
-	userRepo := adapters.NewMongoUserRepository(a.db)
-	userController := httpport.NewUserController(userService.NewUserService(userRepo))
+	userRepo := repository.NewMongoUserRepository(a.db)
+	userController := rest.NewUserController(service.NewUserService(userRepo))
 
 	api := r.Group("/api")
 	{

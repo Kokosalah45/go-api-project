@@ -1,8 +1,8 @@
-package httpport
+package rest
 
 import (
 	"go-api-project/internal/features/common"
-	"go-api-project/internal/features/users/ports/http-port/dtos"
+	"go-api-project/internal/features/users/adapters/incoming/rest/dtos"
 	"go-api-project/internal/features/users/service"
 	"net/http"
 

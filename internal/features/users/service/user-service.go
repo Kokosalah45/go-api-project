@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"go-api-project/internal/features/users/adapters/incoming/rest/dtos"
 	"go-api-project/internal/features/users/domain"
-	"go-api-project/internal/features/users/ports/http-port/dtos"
+	"go-api-project/internal/features/users/ports"
 )
+
+
 
 type UserServicer interface {
 	CreateUser(ctx context.Context, createUserDTO *domain.User) (int, error)
@@ -13,10 +16,10 @@ type UserServicer interface {
 }
 
 type UserService struct {
-	repo domain.UserRepository
+	repo ports.UserRepository
 }
 
-func NewUserService(userRepository domain.UserRepository) *UserService {
+func NewUserService(userRepository ports.UserRepository) *UserService {
 	return &UserService{
 		repo: userRepository,
 	}

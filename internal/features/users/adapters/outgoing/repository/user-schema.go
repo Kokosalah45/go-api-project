@@ -1,4 +1,4 @@
-package adapters
+package repository
 
 import (
 	"go-api-project/internal/features/users/domain"
