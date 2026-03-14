@@ -12,12 +12,12 @@ import (
 
 func (a *App) registerRoutes() http.Handler {
 
-	r := gin.Default()
+	r := gin.New()
 
 	r.Use(cors.New(a.corsConfig))
+	r.Use(gin.Recovery())
 
 	userRepo := adapters.NewMongoUserRepository(a.db)
-
 	userController := httpport.NewUserController(userService.NewUserService(userRepo))
 
 	api := r.Group("/api")
@@ -25,7 +25,6 @@ func (a *App) registerRoutes() http.Handler {
 		v1 := api.Group("/v1")
 		{
 			userController.RegisterRoutes(v1)
-
 		}
 	}
 

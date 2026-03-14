@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -12,13 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-var (
-	host    = os.Getenv("DB_HOST")
-	port    = os.Getenv("DB_PORT")
-	appUser = os.Getenv("DB_USERNAME")
-	appPass = os.Getenv("DB_PASSWORD")
-	dbName  = os.Getenv("DB_NAME")
-)
 
 type MongoDbService struct {
 	client *mongo.Client
@@ -26,22 +18,32 @@ type MongoDbService struct {
 	db     *mongo.Database
 }
 
-func New() *MongoDbService {
+type MongoDBConf struct {
+	Host     string
+	Port     string
+	AppUser  string
+	AppPass  string
+	DBName   string
+}
+
+
+func New(c *MongoDBConf) (*MongoDbService, error) {
 
 	appURI := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?authSource=%s",
-		appUser, appPass, host, port, dbName, dbName,
+		c.AppUser, c.AppPass, c.Host, c.Port, c.DBName, c.DBName,
 	)
 	appClient, err := mongo.Connect(options.Client().ApplyURI(appURI))
+	
 	if err != nil {
-		log.Fatalf("Failed to connect as app user: %v", err)
+		return nil, fmt.Errorf("connecting to MongoDB: %w", err)
 	}
 	svc := &MongoDbService{
 		client: appClient,
-		dbName: dbName,
-		db:     appClient.Database(dbName),
+		dbName: c.DBName,
+		db:     appClient.Database(c.DBName),
 	}
 
-	return svc
+	return svc, nil
 }
 
 func (s *MongoDbService) GetDb() *mongo.Database   { return s.db }

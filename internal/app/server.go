@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"time"
 
+	config "go-api-project/internal/conf"
 	"go-api-project/internal/database"
 	mongodb "go-api-project/internal/database/mongodb"
 
@@ -24,10 +24,28 @@ type App struct {
 }
 
 func NewApp() *App {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	
+	conf, err := config.Load()
+
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	db, err := mongodb.New(&mongodb.MongoDBConf{
+		Host:    conf.DB.Host,
+		Port:    conf.DB.Port,
+		AppUser: conf.DB.AppUser,
+		AppPass: conf.DB.AppPass,
+		DBName:  conf.DB.DBName,
+	})
+
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	
 	newApp := &App{
-		port: port,
-		db:   mongodb.New(),
+		port: conf.App.Port,
+		db:   db,
 		corsConfig: cors.Config{
 			AllowOrigins:     []string{"http://localhost:5173"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
@@ -35,7 +53,7 @@ func NewApp() *App {
 			AllowCredentials: true,
 		},
 		server: &http.Server{
-			Addr:         fmt.Sprintf(":%d", port),
+			Addr:         fmt.Sprintf(":%d", conf.App.Port),
 			IdleTimeout:  time.Minute,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 30 * time.Second,

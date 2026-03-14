@@ -19,8 +19,8 @@ func NewUserController(userService *service.UserService) *UserController {
 	}
 }
 
-func (uc *UserController) RegisterRoutes(router *gin.RouterGroup) {
-	users := router.Group("/users")
+func (uc *UserController) RegisterRoutes(rg *gin.RouterGroup) {
+	users := rg.Group("/users")
 	{
 		users.POST("", uc.CreateUser)
 		users.GET("/:id", uc.GetUserByID)
