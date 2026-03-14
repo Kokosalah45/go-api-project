@@ -21,14 +21,15 @@ func (s *UserSchema) ToModel() *domain.User {
 		Username:    s.Username,
 		Email:       s.Email,
 		Description: s.Description,
+		Age:         s.Age,
 	}
 }
 
-func FromModel(m *domain.User) *UserSchema {
+func FromModel(m *domain.User) (*UserSchema, error) {
 	parsedId, err := bson.ObjectIDFromHex(m.ID)
 
 	if err != nil {
-		parsedId = bson.NewObjectID()
+		return nil, err
 	}
 
 	return &UserSchema{
@@ -36,5 +37,6 @@ func FromModel(m *domain.User) *UserSchema {
 		Username:    m.Username,
 		Email:       m.Email,
 		Description: m.Description,
-	}
+		Age:         m.Age,
+	} , nil
 }

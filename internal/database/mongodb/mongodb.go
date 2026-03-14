@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	host     = os.Getenv("DB_HOST")
-	port     = os.Getenv("DB_PORT")
-	appUser  = os.Getenv("DB_USERNAME")
-	appPass  = os.Getenv("DB_PASSWORD")
-	dbName   = os.Getenv("DB_NAME")
+	host    = os.Getenv("DB_HOST")
+	port    = os.Getenv("DB_PORT")
+	appUser = os.Getenv("DB_USERNAME")
+	appPass = os.Getenv("DB_PASSWORD")
+	dbName  = os.Getenv("DB_NAME")
 )
 
 type MongoDbService struct {

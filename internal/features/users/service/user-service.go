@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go-api-project/internal/features/users/domain"
+	"go-api-project/internal/features/users/ports/http-port/dtos"
 )
 
 type UserServicer interface {
@@ -35,4 +36,37 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (*domain.User,
 		return nil, errors.New("failed to get user: " + err.Error())
 	}
 	return user, nil
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, id string, updatedUser *dtos.UpdateUserRequest) (*domain.User, error) {
+
+	existingUser, err := s.repo.GetByID(ctx, id)
+
+	if err != nil {
+		return nil, errors.New("failed to get user: " + err.Error())
+	}
+
+	if updatedUser.Username != nil {
+		existingUser.Username = *updatedUser.Username
+	}
+
+	if updatedUser.Email != nil {
+		existingUser.Email = *updatedUser.Email
+	}
+
+	if updatedUser.Description != nil {
+		existingUser.Description = updatedUser.Description
+	}
+
+	if updatedUser.Age != nil {
+		existingUser.Age = updatedUser.Age
+	}
+
+	err = s.repo.Update(ctx, existingUser)
+
+	if err != nil {
+		return nil, errors.New("failed to update user: " + err.Error())
+	}
+
+	return existingUser, nil
 }

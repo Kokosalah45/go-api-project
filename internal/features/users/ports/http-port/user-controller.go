@@ -1,7 +1,6 @@
 package httpport
 
 import (
-	"fmt"
 	"go-api-project/internal/features/common"
 	"go-api-project/internal/features/users/ports/http-port/dtos"
 	"go-api-project/internal/features/users/service"
@@ -25,6 +24,7 @@ func (uc *UserController) RegisterRoutes(router *gin.RouterGroup) {
 	{
 		users.POST("", uc.CreateUser)
 		users.GET("/:id", uc.GetUserByID)
+		users.PUT("/:id", uc.UpdateUser)
 	}
 }
 
@@ -38,11 +38,9 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 
 	var userModel = dto.ToModel()
 
-	fmt.Println(userModel.Age,dto.Age)
-
 	user, err := uc.userService.CreateUser(c.Request.Context(), userModel)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -53,19 +51,37 @@ func (uc *UserController) GetUserByID(c *gin.Context) {
 
 	idParam := c.Param("id")
 
-	if idParam == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
 	user, err := uc.userService.GetUserByID(c.Request.Context(), idParam)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user"})
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	userResponse := dtos.NewDetailedUserResponse(user)
+
+	c.JSON(http.StatusOK, userResponse)
+}
+
+func (uc *UserController) UpdateUser(c *gin.Context) {
+
+	idParam := c.Param("id")
+
+	var dto dtos.UpdateUserRequest
+
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": common.NewBadRequestError()})
+		return
+	}
+
+	updatedUser, err := uc.userService.UpdateUser(c.Request.Context(), idParam, &dto)
+
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	userResponse := dtos.NewDetailedUserResponse(updatedUser)
 
 	c.JSON(http.StatusOK, userResponse)
 }

@@ -31,7 +31,11 @@ func (m *MongoUserRepository) Create(ctx context.Context, user *domain.User) (in
 
 	fmt.Print(user)
 
-	userEntity := FromModel(user)
+	userEntity, mappingErr := FromModel(user)
+
+	if mappingErr != nil {
+		return 0, mappingErr
+	}
 
 	collection := m.collection
 
@@ -69,4 +73,23 @@ func (m *MongoUserRepository) GetByID(ctx context.Context, id string) (*domain.U
 	}
 
 	return userEntity.ToModel(), nil
+}
+
+func (m *MongoUserRepository) Update(ctx context.Context, user *domain.User) error {
+
+	collection := m.collection
+
+	userEntity, mappingErr := FromModel(user)
+
+	if mappingErr != nil {
+		return mappingErr
+	}
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": userEntity.ID}, bson.M{"$set": userEntity})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

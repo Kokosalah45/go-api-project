@@ -40,7 +40,7 @@ type BadRequestError struct {
 }
 
 func NewBadRequestError() *BadRequestError {
-	currentMessage := "BAD REQUEST"
+	currentMessage := "BAD_REQUEST"
 	statusCode := http.StatusBadRequest
 
 	return &BadRequestError{

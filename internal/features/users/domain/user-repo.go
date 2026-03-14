@@ -7,4 +7,5 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *User) (int, error)
 	GetByID(ctx context.Context, id string) (*User, error)
+	Update(ctx context.Context, user *User) error
 }

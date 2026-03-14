@@ -8,13 +8,11 @@ type User struct {
 	Age         *int
 }
 
-func (u *User) AddDescription(desc *string) error {
-
-	if u.Description != nil {
-		return NewUserHasAlreadyDescriptionError()
+func NewUser(username, email string, description *string, age *int) *User {
+	return &User{
+		Username:    username,
+		Email:       email,
+		Description: description,
+		Age:         age,
 	}
-
-	u.Description = desc
-
-	return nil
 }
