@@ -15,13 +15,19 @@ type DBConfig struct {
 }
 
 type AppConfig struct {
-	Port   int `env:"PORT" envDefault:"8080"`
+	Port   int    `env:"PORT" envDefault:"8080"`
 	AppEnv string `env:"APP_ENV" envDefault:"local"`
+}
+
+type LogConfig struct {
+	Level  string `env:"LOG_LEVEL" envDefault:"info"`
+	Format string `env:"LOG_FORMAT" envDefault:"console"` // "console" or "json"
 }
 
 type Config struct {
 	DB  DBConfig
 	App AppConfig
+	Log LogConfig
 }
 
 

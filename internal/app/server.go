@@ -9,9 +9,10 @@ import (
 	"os/signal"
 	"time"
 
-	config "go-api-project/internal/conf"
+	"go-api-project/internal/config"
 	"go-api-project/internal/database"
-	mongodb "go-api-project/internal/database/mongodb"
+	"go-api-project/internal/logger"
+	"go-api-project/internal/database/mongodb"
 
 	"github.com/gin-contrib/cors"
 )
@@ -21,31 +22,44 @@ type App struct {
 	db         database.DBService
 	server     *http.Server
 	corsConfig cors.Config
+	logger     logger.Logger
 }
 
 func NewApp() *App {
 	
-	conf, err := config.Load()
+	cfg, err := config.Load()
 
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Failed to load config: %v", err)                           
 	}
 
+	// Initialize logger with configuration
+	baseLogger := logger.NewLoggerFromConfig(logger.Config{
+		Level:  cfg.Log.Level,
+		Format: cfg.Log.Format,
+	})
+	baseLogger.Info("Application starting up", 
+		logger.Str("app_env", cfg.App.AppEnv),
+		logger.Int("port", cfg.App.Port))
+
 	db, err := mongodb.New(&mongodb.MongoDBConf{
-		Host:    conf.DB.Host,
-		Port:    conf.DB.Port,
-		AppUser: conf.DB.AppUser,
-		AppPass: conf.DB.AppPass,
-		DBName:  conf.DB.DBName,
+		Host:    cfg.DB.Host,
+		Port:    cfg.DB.Port,
+		AppUser: cfg.DB.AppUser,
+		AppPass: cfg.DB.AppPass,
+		DBName:  cfg.DB.DBName,
 	})
 
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
+		baseLogger.Fatal("Failed to connect to MongoDB", logger.Err(err))
 	}
 	
+	baseLogger.Info("Database connection established")
+
 	newApp := &App{
-		port: conf.App.Port,
+		port: cfg.App.Port,
 		db:   db,
+		logger: baseLogger,
 		corsConfig: cors.Config{
 			AllowOrigins:     []string{"http://localhost:5173"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
@@ -53,7 +67,7 @@ func NewApp() *App {
 			AllowCredentials: true,
 		},
 		server: &http.Server{
-			Addr:         fmt.Sprintf(":%d", conf.App.Port),
+			Addr:         fmt.Sprintf(":%d", cfg.App.Port),
 			IdleTimeout:  time.Minute,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 30 * time.Second,
@@ -71,28 +85,28 @@ func (a *App) GracefulShutdown(done chan<- bool) {
 
 	<-ctx.Done()
 
-	fmt.Println("shutting down gracefully, press Ctrl+C again to force")
+	a.logger.Info("Shutting down gracefully, press Ctrl+C again to force")
 	stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := a.Shutdown(ctx); err != nil {
-		fmt.Printf("Server forced to shutdown with error: %v", err)
+		a.logger.Error("Server forced to shutdown", logger.Err(err))
 	}
 
-	fmt.Println("Server exiting")
+	a.logger.Info("Server exiting")
 	done <- true
 }
 
 func (a *App) Start() error {
-	fmt.Printf("Server is running on port %d\n", a.port)
+	a.logger.Info("Server starting", logger.Int("port", a.port))
 	return a.server.ListenAndServe()
 }
 
 func (a *App) Shutdown(ctx context.Context) error {
-	fmt.Println("Shutting down server...")
+	a.logger.Info("Shutting down server...")
 	if err := a.db.Close(); err != nil {
-		log.Printf("Error closing DB: %v", err)
+		a.logger.Error("Error closing DB", logger.Err(err))
 	}
 	return a.server.Shutdown(ctx)
 }
